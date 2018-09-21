@@ -11,8 +11,14 @@ import java.net.Socket;
 public class CommManager {
 
 	private Socket socket;
+	private GameGui parent;
+	private OutputStream os;
+	private ObjectOutputStream out;
+	private ObjectInputStream in;
 
-	public CommManager() throws GameException {
+	public CommManager(GameGui parent) throws GameException {
+		this.parent = parent;
+		
 		if (!connect()) {
 			throw new GameException("Unable to connect to server");
 		}
@@ -36,10 +42,11 @@ public class CommManager {
 			sendCmd(1006, "");
 		} else if (e.getKeyCode() == KeyEvent.VK_R) { // R (ready up)
 			sendCmd(1001, "");
+			parent.setGameStatus("CONNECTED, WAITING FOR SERVER TO START GAME");
 		}
 	}
 
-	private void sendCmd(int cmd, String extra) throws GameException {
+	public void sendCmd(int cmd, String extra) throws GameException {
 		if (!socket.isConnected()) {
 			if (!connect()) {
 				throw new GameException("Unable to send command");
@@ -47,19 +54,32 @@ public class CommManager {
 		}
 		try {
 			SocketMessage msg = new SocketMessage(MainClass.MY_ID, cmd, extra);
-			OutputStream os = socket.getOutputStream();
-			ObjectOutputStream out = new ObjectOutputStream(os);
+			out.reset();
 			out.writeObject(msg);
 			out.flush();
 			os.flush();
-			out.close();
-			os.close();
 		} catch (IOException e) {
 			throw new GameException(e);
 		}
 	}
+	
+	public void notifyAndTerminate() throws GameException {
+		try {
+			if (!socket.isConnected()) {
+				return;
+			}
+			sendCmd(1002, "");
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean isConnected() {
+		return socket.isConnected();
+	}
 
-	private boolean connect() {
+	private boolean connect() throws GameException {
 		try {
 			socket = new Socket();
 			socket.setSoTimeout(1000);
@@ -68,16 +88,12 @@ public class CommManager {
 			if (!socket.isConnected()) {
 				return false;
 			}
-			SocketMessage msg = new SocketMessage(MainClass.MY_ID, 1000, "");
-			OutputStream os = socket.getOutputStream();
-			ObjectOutputStream out = new ObjectOutputStream(os);
-			out.writeObject(msg);
-			out.flush();
-			os.flush();
-			out.close();
-			os.close();
-			ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			msg = (SocketMessage) in.readObject();
+			os = socket.getOutputStream();
+			out = new ObjectOutputStream(os);
+			sendCmd(1000, "");
+			in = new ObjectInputStream(socket.getInputStream());
+			in.reset();
+			SocketMessage msg = (SocketMessage) in.readObject();
 			if (msg.cmd == 1009) {
 				return true;
 			} else if (msg.cmd == -1001) {
