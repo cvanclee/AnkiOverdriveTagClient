@@ -15,10 +15,11 @@ public class CommManager {
 	private OutputStream os;
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
+	private String vehicleName;
 
 	public CommManager(GameGui parent) throws GameException {
 		this.parent = parent;
-		
+
 		if (!connect()) {
 			throw new GameException("Unable to connect to server");
 		}
@@ -42,15 +43,13 @@ public class CommManager {
 			sendCmd(1006, "");
 		} else if (e.getKeyCode() == KeyEvent.VK_R) { // R (ready up)
 			sendCmd(1001, "");
-			parent.setGameStatus("CONNECTED, WAITING FOR SERVER TO START GAME");
+			parent.setGameStatus("CONNECTED AND READY AS " + vehicleName + ", WAITING FOR SERVER TO START GAME");
 		}
 	}
 
 	public void sendCmd(int cmd, String extra) throws GameException {
 		if (!socket.isConnected()) {
-			if (!connect()) {
-				throw new GameException("Unable to send command");
-			}
+			throw new GameException("Unable to send command");
 		}
 		try {
 			SocketMessage msg = new SocketMessage(MainClass.MY_ID, cmd, extra);
@@ -59,22 +58,19 @@ public class CommManager {
 			out.flush();
 			os.flush();
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new GameException(e);
 		}
 	}
-	
-	public void notifyAndTerminate() throws GameException {
-		try {
-			if (!socket.isConnected()) {
-				return;
-			}
-			sendCmd(1002, "");
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+
+	public void notifyAndTerminate() throws Exception {
+		if (!socket.isConnected()) {
+			return;
 		}
+		sendCmd(1002, "");
+		socket.close();
 	}
-	
+
 	public boolean isConnected() {
 		return socket.isConnected();
 	}
@@ -82,7 +78,7 @@ public class CommManager {
 	private boolean connect() throws GameException {
 		try {
 			socket = new Socket();
-			socket.setSoTimeout(1000);
+			socket.setSoTimeout(2000);
 			socket.connect(new InetSocketAddress(MainClass.SERVER_NAME, MainClass.SERVER_PORT),
 					MainClass.SERVER_TIMEOUT);
 			if (!socket.isConnected()) {
@@ -92,9 +88,11 @@ public class CommManager {
 			out = new ObjectOutputStream(os);
 			sendCmd(1000, "");
 			in = new ObjectInputStream(socket.getInputStream());
-			in.reset();
 			SocketMessage msg = (SocketMessage) in.readObject();
 			if (msg.cmd == 1009) {
+				vehicleName = msg.extra;
+				parent.setVehicleName(vehicleName);
+				parent.setGameStatus("CONNECTED AS " + vehicleName + ", WAITING FOR GAME START");
 				return true;
 			} else if (msg.cmd == -1001) {
 				return false;

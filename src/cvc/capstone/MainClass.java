@@ -9,7 +9,7 @@ public class MainClass {
 
 	public static final int SERVER_PORT = 4999;
 	public static final String SERVER_NAME = "129.3.213.249";
-	public static final int SERVER_TIMEOUT = 1000; //ms
+	public static final int SERVER_TIMEOUT = 2000; //ms
 	public static final String MY_ID = UUID.randomUUID().toString().replaceAll("-", "");
 	private static GameGui gui = null;
 	
