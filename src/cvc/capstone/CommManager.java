@@ -80,7 +80,7 @@ public class CommManager {
 			socket = new Socket();
 			socket.setSoTimeout(2000);
 			socket.connect(new InetSocketAddress(MainClass.SERVER_NAME, MainClass.SERVER_PORT),
-					MainClass.SERVER_TIMEOUT);
+					MainClass.COMMUNICATION_TIMEOUT);
 			if (!socket.isConnected()) {
 				return false;
 			}
