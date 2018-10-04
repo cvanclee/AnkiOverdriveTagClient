@@ -7,8 +7,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
-public class CommManager {
+public class CommManager extends Thread {
 
 	private Socket socket;
 	private GameGui parent;
@@ -25,6 +26,42 @@ public class CommManager {
 		}
 	}
 
+	/**
+	 * Runs after receiving the game start from server, until the serve notifies the
+	 * game ends
+	 */
+	@Override
+	public void run() {
+		while (!isInterrupted()) {
+			try {
+				SocketMessage msg = (SocketMessage) in.readObject();
+				switch (msg.cmd) {
+				case 1010:
+					parent.setGameStatus("YOU ARE IT! DRIVING " + vehicleName);
+					break;
+				case 1011:
+					parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
+					break;
+				case 1012:
+					parent.setIsIt(!(parent.isIt().get()));
+					if (parent.isIt().get()) {
+						parent.setGameStatus("YOU ARE IT! DRIVING " + vehicleName);
+					} else {
+						parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
+					}
+					break;
+				default:
+					break;
+				}
+			} catch (SocketTimeoutException e) {
+				continue;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+		}
+	}
+	
 	public void resolveKeyPress(KeyEvent e) throws GameException {
 		if (e.getID() == KeyEvent.KEY_PRESSED) {
 			return;
