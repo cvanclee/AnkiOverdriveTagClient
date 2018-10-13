@@ -32,7 +32,7 @@ public class CommManager extends Thread {
 	 */
 	@Override
 	public void run() {
-		while (!isInterrupted()) {
+		while (!isInterrupted() || !socket.isClosed()) {
 			try {
 				SocketMessage msg = (SocketMessage) in.readObject();
 				switch (msg.cmd) {
