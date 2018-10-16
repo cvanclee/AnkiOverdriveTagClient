@@ -50,6 +50,10 @@ public class CommManager extends Thread {
 						parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
 					}
 					break;
+				case 1016:
+					int myInc = Integer.parseInt(msg.extra.split(";")[0]);
+					int oppInc = Integer.parseInt(msg.extra.split(";")[1]);
+					parent.setScoreStatus(myInc, oppInc);
 				default:
 					break;
 				}

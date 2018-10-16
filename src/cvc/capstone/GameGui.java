@@ -14,6 +14,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -26,6 +27,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.plaf.ColorUIResource;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -34,8 +37,9 @@ public class GameGui extends JFrame {
 	private CommManager commManager;
 	private JPanel mainPanel;
 	private JPanel topPanel;
-	private JLabel statusLabel;
+	private JLabel statusLabel; //Top left label
 	private JLabel statusText;
+	private JLabel scoreText; //Center label
 	private JMenuBar menuBar;
 	private JMenu menuHelp;
 	private JMenuItem menuHelpControls;
@@ -48,11 +52,15 @@ public class GameGui extends JFrame {
 	private JButton tagButt;
 	private JButton blockButt;
 	private String vehicleName;
-	private AtomicBoolean isIt;
+	private volatile AtomicBoolean isIt;
+	private int myScore;
+	private int oppScore;
 
 	public GameGui() {
 		vehicleName = "";
 		isIt = new AtomicBoolean();
+		myScore = 0;
+		oppScore = 0;
 
 		// Exit handling
 		addWindowListener(new WindowAdapter() {
@@ -74,6 +82,8 @@ public class GameGui extends JFrame {
 		topPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 		statusLabel = new JLabel();
 		statusText = new JLabel();
+		scoreText = new JLabel();
+		setScoreStatus(0, 0);
 		statusLabel.setText("STATUS: ");
 		statusText.setText("DISCONNECTED");
 		GroupLayout tgl = new GroupLayout(topPanel);
@@ -154,6 +164,13 @@ public class GameGui extends JFrame {
 		turnButt = new JButton();
 		tagButt = new JButton();
 		blockButt = new JButton();
+		leftButt.setBackground(Color.DARK_GRAY);
+		rightButt.setBackground(Color.DARK_GRAY);
+		speedButt.setBackground(Color.DARK_GRAY);
+		turnButt.setBackground(Color.DARK_GRAY);
+		tagButt.setBackground(Color.DARK_GRAY);
+		blockButt.setBackground(Color.DARK_GRAY);
+		UIManager.put("Button.focus", new ColorUIResource(new Color(0, 0, 0, 0))); //Remove icon focus outline
 		leftButt.setToolTipText("Turn left");
 		rightButt.setToolTipText("Turn right");
 		speedButt.setToolTipText("Speed up");
@@ -187,6 +204,7 @@ public class GameGui extends JFrame {
 		mainPanel.add(tagButt, "cell 0 2");
 		mainPanel.add(speedButt, "cell 1 2");
 		mainPanel.add(blockButt, "cell 2 2");
+		mainPanel.add(scoreText, "align center, cell 1 1"); //center
 		leftButt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -280,6 +298,16 @@ public class GameGui extends JFrame {
 		});
 	}
 
+	public synchronized void setScoreStatus(int me, int opponent) {
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				myScore = myScore + me;
+				oppScore = oppScore + opponent;
+				scoreText.setText("<html><h2>Score</h2><br>Me: " + myScore + "<br>Opponent: " + oppScore + "</html>");
+			}
+		});
+	}
+	
 	public void setVehicleName(String vehicleName) {
 		this.vehicleName = vehicleName;
 	}
