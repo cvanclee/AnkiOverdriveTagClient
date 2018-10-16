@@ -33,9 +33,6 @@ public class MainClass {
 			@Override
 			public void run() {
 				gui = new GameGui();
-				gui.setTitle("Anki Overdrive Tag Game");
-				gui.setSize(new Dimension(800, 600));
-				gui.setVisible(true);
 			}
 		});
 	}

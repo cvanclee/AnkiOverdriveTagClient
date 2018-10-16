@@ -32,8 +32,9 @@ import javax.swing.plaf.ColorUIResource;
 
 import net.miginfocom.swing.MigLayout;
 
-public class GameGui extends JFrame {
+public class GameGui {
 
+	private JFrame frame;
 	private CommManager commManager;
 	private JPanel mainPanel;
 	private JPanel topPanel;
@@ -57,13 +58,14 @@ public class GameGui extends JFrame {
 	private int oppScore;
 
 	public GameGui() {
+		frame = new JFrame();
 		vehicleName = "";
 		isIt = new AtomicBoolean();
 		myScore = 0;
 		oppScore = 0;
 
 		// Exit handling
-		addWindowListener(new WindowAdapter() {
+		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				try {
 					commManager.notifyAndTerminate();
@@ -72,7 +74,7 @@ public class GameGui extends JFrame {
 					System.out.println("Error while notifying server of disconnection");
 					ex.printStackTrace();
 				}
-				dispose();
+				frame.dispose();
 				System.exit(0);
 			}
 		});
@@ -94,6 +96,7 @@ public class GameGui extends JFrame {
 		// Main JPanel setup
 		mainPanel = new JPanel();
 		mainPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		mainPanel.setOpaque(true);
 		
 		//Menu bar setup
 		menuHelp = new JMenu();
@@ -155,7 +158,7 @@ public class GameGui extends JFrame {
 				JOptionPane.showMessageDialog(null, full);
 			}
 		});
-		setJMenuBar(menuBar);
+		frame.setJMenuBar(menuBar);
 		
 		//Buttons for car control setup
 		leftButt = new JButton();
@@ -261,17 +264,17 @@ public class GameGui extends JFrame {
 		});
 
 		// Frame setup
-		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(topPanel, BorderLayout.NORTH);
-		getContentPane().add(mainPanel, BorderLayout.CENTER);
-		this.setMinimumSize(new Dimension(400, 400));
+		frame.getContentPane().setLayout(new BorderLayout());
+		frame.getContentPane().add(topPanel, BorderLayout.NORTH);
+		frame.getContentPane().add(mainPanel, BorderLayout.CENTER);
+		frame.setMinimumSize(new Dimension(400, 400));
 		
 		//Comm setup
 		try {
 			commManager = new CommManager(this);
 			commManager.start();
 		} catch (GameException e) {
-			JOptionPane.showMessageDialog(this, "Unable to establish connection to server", "Connection Failed",
+			JOptionPane.showMessageDialog(frame, "Unable to establish connection to server", "Connection Failed",
 					JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}
@@ -288,6 +291,10 @@ public class GameGui extends JFrame {
 				return true;
 			}
 		});
+		
+		frame.setTitle("Anki Overdrive Tag Game");
+		frame.setSize(new Dimension(800, 600));
+		frame.setVisible(true);
 	}
 
 	public synchronized void setGameStatus(String status) {
@@ -304,6 +311,18 @@ public class GameGui extends JFrame {
 				myScore = myScore + me;
 				oppScore = oppScore + opponent;
 				scoreText.setText("<html><h2>Score</h2><br>Me: " + myScore + "<br>Opponent: " + oppScore + "</html>");
+				frame.revalidate();
+				frame.repaint();
+			}
+		});
+	}
+	
+	public synchronized void setFrameColor(Color c) {
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				mainPanel.setBackground(c);
+				frame.revalidate();
+				frame.repaint();
 			}
 		});
 	}
