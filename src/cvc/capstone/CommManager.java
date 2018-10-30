@@ -40,27 +40,49 @@ public class CommManager extends Thread {
 				case 1010:
 					parent.setIsIt(true);
 					parent.setGameStatus("YOU ARE IT! DRIVING " + vehicleName);
-					parent.setFrameColor(new Color(1f, 0f, 0f, .5f));
+					parent.setFrameColor(new Color(0f, 1f, 0f, .5f));
 					break;
 				case 1011:
 					parent.setIsIt(false);
 					parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
-					parent.setFrameColor(new Color(0f, 1f, 0f, .5f));
+					parent.setFrameColor(new Color(1f, 0f, 0f, .5f));
 					break;
 				case 1012:
 					parent.setIsIt(!(parent.isIt().get()));
 					if (parent.isIt().get()) {
 						parent.setGameStatus("YOU ARE IT! DRIVING " + vehicleName);
-						parent.setFrameColor(new Color(1f, 0f, 0f, .5f));
+						parent.setFrameColor(new Color(0f, 1f, 0f, .5f));
 					} else {
 						parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
-						parent.setFrameColor(new Color(0f, 1f, 0f, .5f));
+						parent.setFrameColor(new Color(1f, 0f, 0f, .5f));
 					}
 					break;
 				case 1016:
 					int myInc = Integer.parseInt(msg.extra.split(";")[0]);
 					int oppInc = Integer.parseInt(msg.extra.split(";")[1]);
 					parent.setScoreStatus(myInc, oppInc);
+					break;
+				case 1013: //win
+					System.out.println("Received game over from server.");
+					parent.setGameStatus("DISCONNECTED");
+					parent.setScoreStatus(0, 0);
+					socket.close();
+					parent.endGame(msg.extra);
+					break;
+				case 1014: //lose
+					System.out.println("Received game over from server.");
+					parent.setGameStatus("DISCONNECTED");
+					parent.setScoreStatus(0, 0);
+					socket.close();
+					parent.endGame(msg.extra);
+					break;
+				case 1015: //tie
+					System.out.println("Received game over from server.");
+					parent.setGameStatus("DISCONNECTED");
+					parent.setScoreStatus(0, 0);
+					socket.close();
+					parent.endGame(msg.extra);
+					break;
 				default:
 					break;
 				}
@@ -91,7 +113,7 @@ public class CommManager extends Thread {
 			sendCmd(1006, "");
 		} else if (e.getKeyCode() == KeyEvent.VK_R) { // R (ready up)
 			sendCmd(1001, "");
-			parent.setGameStatus("CONNECTED AND READY AS " + vehicleName + ", WAITING FOR SERVER TO START GAME");
+			parent.setGameStatus("CONNECTED AND READY AS " + vehicleName + ", WAITING FOR SERVER TO START");
 		}
 	}
 
@@ -140,7 +162,7 @@ public class CommManager extends Thread {
 			if (msg.cmd == 1009) {
 				vehicleName = msg.extra;
 				parent.setVehicleName(vehicleName);
-				parent.setGameStatus("CONNECTED AS " + vehicleName + ", WAITING FOR GAME START");
+				parent.setGameStatus("CONNECTED AS " + vehicleName + ", WAITING FOR READY UP");
 				return true;
 			} else if (msg.cmd == -1001) {
 				return false;

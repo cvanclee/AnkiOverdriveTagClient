@@ -5,21 +5,20 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -27,6 +26,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.plaf.ColorUIResource;
 
@@ -36,16 +36,19 @@ public class GameGui {
 
 	private JFrame frame;
 	private CommManager commManager;
-	private JPanel mainPanel;
+	private JListeningPanel mainPanel;
 	private JPanel topPanel;
 	private JLabel statusLabel; //Top left label
 	private JLabel statusText;
 	private JLabel scoreText; //Center label
 	private JMenuBar menuBar;
 	private JMenu menuHelp;
+	private JMenu menuConnect;
+	private JMenuItem menuConnectConnect;
 	private JMenuItem menuHelpControls;
 	private JMenuItem menuHelpSetup;
 	private JMenuItem menuHelpRules;
+	private JMenuItem menuHelpColors;
 	private JButton leftButt;
 	private JButton rightButt;
 	private JButton speedButt;
@@ -56,7 +59,8 @@ public class GameGui {
 	private volatile AtomicBoolean isIt;
 	private int myScore;
 	private int oppScore;
-
+	private GameGui me = this;
+	
 	public GameGui() {
 		frame = new JFrame();
 		vehicleName = "";
@@ -68,8 +72,10 @@ public class GameGui {
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				try {
-					commManager.notifyAndTerminate();
-					commManager.interrupt();
+					if (commManager != null) {
+						commManager.notifyAndTerminate();
+						commManager.interrupt();
+					}
 				} catch (Exception ex) {
 					System.out.println("Error while notifying server of disconnection");
 					ex.printStackTrace();
@@ -93,22 +99,37 @@ public class GameGui {
 		tgl.setHorizontalGroup(tgl.createSequentialGroup().addComponent(statusLabel).addComponent(statusText));
 		tgl.setVerticalGroup(tgl.createParallelGroup().addComponent(statusLabel).addComponent(statusText));
 
-		// Main JPanel setup
-		mainPanel = new JPanel();
+		// Main JPanel setup - listens for keyboard presses if focused
+		mainPanel = new JListeningPanel();
 		mainPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 		mainPanel.setOpaque(true);
+		mainPanel.setFocusable(true);
+		mainPanel.addKeyListener(mainPanel);
 		
 		//Menu bar setup
 		menuHelp = new JMenu();
+		menuConnect = new JMenu();
 		menuBar = new JMenuBar();
+		menuConnectConnect = new JMenuItem();
 		menuHelpControls = new JMenuItem();
 		menuHelpSetup = new JMenuItem();
 		menuHelpRules = new JMenuItem();
+		menuHelpColors = new JMenuItem();
 		menuHelp.setText("Help");
+		menuConnect.setText("Connect");
+		menuConnectConnect.setText("Connect to server");
 		menuHelpControls.setText("Controls");
 		menuHelpSetup.setText("Setup");
 		menuHelpRules.setText("Rules");
+		menuHelpColors.setText("Colors");
+		menuBar.add(menuConnect);
 		menuBar.add(menuHelp);
+		menuConnect.add(menuConnectConnect);
+		menuConnectConnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				connectDialog();
+			}
+		});
 		menuHelp.add(menuHelpControls);
 		menuHelpControls.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
@@ -118,11 +139,11 @@ public class GameGui {
 						+ "<br>Right arrow key: change lane right."
 						+ "<br>Space bar: increase speed. You will gradually lose speed without pressing this!"
 						+ "<br>Down arrow key: turn around."
-						+ "<br>Z key: attempt to tag (only as 'it'), if not on cooldown."
-						+ "<br>X key: block for 3 seconds (only as 'tagger'), if not on cooldown."
-						+ "<br>Note: tag cooldown is half a second, block cooldown is 10 seconds.</p>";
+						+ "<br>Z key: attempt to tag (only as 'tagger'), if not on cooldown."
+						+ "<br>X key: block for 2 seconds (only as 'it'), if not on cooldown."
+						+ "<br>Note: Block cooldown is 10 seconds.</p>";
 				String full = h + header + body;
-				JOptionPane.showMessageDialog(null, full);
+				JOptionPane.showMessageDialog(frame, full);
 			}
 		});
 		menuHelp.add(menuHelpSetup);
@@ -136,7 +157,7 @@ public class GameGui {
 						+ "<br>be placed about one inch behind the starting arrows, in seperate lanes. "
 						+ "<br>Do not modify the track or interfere with the cars during gameplay.</p>";
 				String full = h + header + body;
-				JOptionPane.showMessageDialog(null, full);
+				JOptionPane.showMessageDialog(frame, full);
 			}
 		});
 		menuHelp.add(menuHelpRules);
@@ -151,11 +172,25 @@ public class GameGui {
 						+ "<br>being tagged by the 'tagger'."
 						+ "<br>Every consecutive 30 seconds a player is 'it' without being tagged, they "
 						+ "<br>gain 2 points. Every time the 'tagger' tags 'it', the players swap roles, "
-						+ "<br>and the new 'it' is given 3 seconds to get away and given 1 point. The game "
-						+ "<br> ends after 3 minutes, a player reaches 6 points, or an Anki car is "
-						+ "<br>detected off the track.</p>";
+						+ "<br>and the new 'it' is given 3 seconds to get away and is given 1 point. The game "
+						+ "<br> ends when a player reaches 50 points, or a player disconnects. "
+						+ "<br>Note: You will lose 1 point for turning or trying to turn.</p>";
 				String full = h + header + body;
-				JOptionPane.showMessageDialog(null, full);
+				JOptionPane.showMessageDialog(frame, full);
+			}
+		});
+		menuHelp.add(menuHelpColors);
+		menuHelpColors.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				String h = "<html><body width='>'";
+				String header = "<h1>Colors</h1>";
+				String body = "<p>Red represents who is the 'tagger', and green represents who is 'it'."
+						+ "<br>The headlights of your assigned car and the background of this interface"
+						+ "<br>will display either green or red to match your current role during gameplay."
+						+ "<br>The headlights will flash green while 'it' is blocking, signaling"
+						+ "<br>that they cannot be tagged.</p>";
+				String full = h + header + body;
+				JOptionPane.showMessageDialog(frame, full);
 			}
 		});
 		frame.setJMenuBar(menuBar);
@@ -167,6 +202,12 @@ public class GameGui {
 		turnButt = new JButton();
 		tagButt = new JButton();
 		blockButt = new JButton();
+		leftButt.setFocusable(false); //Prevents spacebar binding to the most recently pressed button
+		rightButt.setFocusable(false);
+		speedButt.setFocusable(false);
+		turnButt.setFocusable(false);
+		tagButt.setFocusable(false);
+		blockButt.setFocusable(false);
 		leftButt.setBackground(Color.DARK_GRAY);
 		rightButt.setBackground(Color.DARK_GRAY);
 		speedButt.setBackground(Color.DARK_GRAY);
@@ -267,40 +308,29 @@ public class GameGui {
 		frame.getContentPane().setLayout(new BorderLayout());
 		frame.getContentPane().add(topPanel, BorderLayout.NORTH);
 		frame.getContentPane().add(mainPanel, BorderLayout.CENTER);
-		frame.setMinimumSize(new Dimension(400, 400));
-		
-		//Comm setup
-		try {
-			commManager = new CommManager(this);
-			commManager.start();
-		} catch (GameException e) {
-			JOptionPane.showMessageDialog(frame, "Unable to establish connection to server", "Connection Failed",
-					JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
-		}
-
-		// Key listener
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
-			@Override
-			public boolean dispatchKeyEvent(KeyEvent e) {
-				try {
-					commManager.resolveKeyPress(e);
-				} catch (GameException ex) {
-					ex.printStackTrace();
-				}
-				return true;
-			}
-		});
-		
+		frame.setMinimumSize(new Dimension(600, 600));		
 		frame.setTitle("Anki Overdrive Tag Game");
 		frame.setSize(new Dimension(800, 600));
 		frame.setVisible(true);
+	}
+	
+	public synchronized void endGame(String reason) {
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				JOptionPane.showMessageDialog(frame, reason);
+			}
+		});
 	}
 
 	public synchronized void setGameStatus(String status) {
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				statusText.setText(status);
+				scoreText.setText("<html>"
+						+ "<h3><center>Status:</center></h3>"
+						+ "<center>" + statusText.getText() + "</center>"
+						+ "<br><h3><center>Score:</center></h3>"
+						+ "<center>Me: " + myScore + "<br>Opponent: " + oppScore + "</center></html>");
 			}
 		});
 	}
@@ -310,7 +340,11 @@ public class GameGui {
 			public void run() {
 				myScore = myScore + me;
 				oppScore = oppScore + opponent;
-				scoreText.setText("<html><h2>Score</h2><br>Me: " + myScore + "<br>Opponent: " + oppScore + "</html>");
+				scoreText.setText("<html>"
+						+ "<h3><center>Status:</center></h3>"
+						+ statusText.getText()
+						+ "<br><h3><center>Score:</center></h3>"
+						+ "<center>Me: " + myScore + "<br>Opponent: " + oppScore + "</center></html>");
 				frame.revalidate();
 				frame.repaint();
 			}
@@ -339,6 +373,64 @@ public class GameGui {
 		this.isIt.set(isIt);
 	}
 	
+	private void newComm() {
+		try {
+			if (commManager != null && commManager.isAlive()) {
+				System.out.print("A communication manager is running. Ignoring request for new connection.");
+				JOptionPane.showMessageDialog(frame,
+						"A communication manager is running. Ignoring request.", "Connection Failed",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			commManager = new CommManager(this);
+			commManager.start();
+		} catch (GameException e) {
+			JOptionPane.showMessageDialog(frame, "Unable to establish connection to server", "Connection Failed",
+					JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+		}
+	}
+	
+	private void connectDialog() {
+		MigLayout gl = new MigLayout("", "[][]", "[100%][]");
+		MigLayout ml = new MigLayout("", "[100%]", "[][]");
+		JPanel topPanel = new JPanel();
+		topPanel.setLayout(gl);
+		JLabel hostLabel = new JLabel();
+		JLabel portLabel = new JLabel();
+		hostLabel.setText("Hostname/IP: ");
+		portLabel.setText("Port: ");
+		JTextField hostField = new JTextField();
+		JTextField portField = new JTextField();
+		JDialog conDialog = new JDialog();
+		conDialog.setTitle("Connect to server");
+		conDialog.setLayout(ml);
+		topPanel.add(hostLabel, "cell 0 0, shrink");
+		topPanel.add(hostField, "cell 1 0, grow, push");
+		topPanel.add(portLabel, "cell 0 1, shrink");
+		topPanel.add(portField, "cell 1 1, grow, push");
+		JButton conButt = new JButton();
+		conButt.setText("Connect");
+		if (MainClass.SERVER_NAME != null) {
+			hostField.setText(MainClass.SERVER_NAME);
+			portField.setText(String.valueOf(MainClass.SERVER_PORT));
+		}
+		conButt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				conDialog.dispose();
+				MainClass.SERVER_NAME = hostField.getText();
+				MainClass.SERVER_PORT = Integer.parseInt(portField.getText());
+				newComm();
+			}
+		});
+		conDialog.setLayout(ml);
+		conDialog.add(topPanel, "cell 0 0, center, grow, push");
+		conDialog.add(conButt, "cell 0 1, center");
+		conDialog.setSize(new Dimension(350, 125));
+		conDialog.setResizable(false);
+		conDialog.setVisible(true);
+	}
+	
 	private ImageIcon resizeImg(String path, int x, int y) {
 		ImageIcon imageIcon = new ImageIcon(path); // load the image to a imageIcon
 		Image image = imageIcon.getImage(); // transform it 
@@ -364,6 +456,29 @@ public class GameGui {
 		@Override
 		public int getKeyCode() {
 			return fakeKeyCode;
+		}
+	}
+	
+	private class JListeningPanel extends JPanel implements KeyListener {
+		public void keyPressed(KeyEvent e) {
+			;
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			try {
+				if (commManager == null) {
+					return;
+				}
+				commManager.resolveKeyPress(e);
+			} catch (GameException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		@Override
+		public void keyTyped(KeyEvent arg0) {
+			;
 		}
 	}
 }
