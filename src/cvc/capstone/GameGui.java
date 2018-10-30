@@ -418,6 +418,8 @@ public class GameGui {
 		conButt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				conDialog.dispose();
+				frame.revalidate();
+				frame.repaint();
 				MainClass.SERVER_NAME = hostField.getText();
 				MainClass.SERVER_PORT = Integer.parseInt(portField.getText());
 				newComm();

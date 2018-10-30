@@ -64,6 +64,7 @@ public class CommManager extends Thread {
 					break;
 				case 1013: //win
 					System.out.println("Received game over from server.");
+					parent.setScoreStatus(0, 0);
 					parent.setGameStatus("DISCONNECTED");
 					parent.setScoreStatus(0, 0);
 					socket.close();
@@ -71,6 +72,7 @@ public class CommManager extends Thread {
 					break;
 				case 1014: //lose
 					System.out.println("Received game over from server.");
+					parent.setScoreStatus(0, 0);
 					parent.setGameStatus("DISCONNECTED");
 					parent.setScoreStatus(0, 0);
 					socket.close();
@@ -78,6 +80,7 @@ public class CommManager extends Thread {
 					break;
 				case 1015: //tie
 					System.out.println("Received game over from server.");
+					parent.setScoreStatus(0, 0);
 					parent.setGameStatus("DISCONNECTED");
 					parent.setScoreStatus(0, 0);
 					socket.close();
