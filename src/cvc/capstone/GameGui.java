@@ -49,6 +49,7 @@ public class GameGui {
 	private JMenuItem menuHelpSetup;
 	private JMenuItem menuHelpRules;
 	private JMenuItem menuHelpColors;
+	private JMenuItem menuHelpIssues;
 	private JButton leftButt;
 	private JButton rightButt;
 	private JButton speedButt;
@@ -115,6 +116,7 @@ public class GameGui {
 		menuHelpSetup = new JMenuItem();
 		menuHelpRules = new JMenuItem();
 		menuHelpColors = new JMenuItem();
+		menuHelpIssues = new JMenuItem();
 		menuHelp.setText("Help");
 		menuConnect.setText("Connect");
 		menuConnectConnect.setText("Connect to server");
@@ -122,6 +124,7 @@ public class GameGui {
 		menuHelpSetup.setText("Setup");
 		menuHelpRules.setText("Rules");
 		menuHelpColors.setText("Colors");
+		menuHelpIssues.setText("Issues");
 		menuBar.add(menuConnect);
 		menuBar.add(menuHelp);
 		menuConnect.add(menuConnectConnect);
@@ -171,8 +174,8 @@ public class GameGui {
 						+ "<br>each player may control their respective car. The goal of 'it' is to avoid "
 						+ "<br>being tagged by the 'tagger'."
 						+ "<br>Every consecutive 30 seconds a player is 'it' without being tagged, they "
-						+ "<br>gain 2 points. Every time the 'tagger' tags 'it', the players swap roles, "
-						+ "<br>and the new 'it' is given 3 seconds to get away and is given 1 point. The game "
+						+ "<br>gain 10 points. Every time the 'tagger' tags 'it', the players swap roles, "
+						+ "<br>and the new 'it' is given 3 seconds to get away and is given 5 points. The game "
 						+ "<br> ends when a player reaches 50 points, or a player disconnects. "
 						+ "<br>Note: You will lose 1 point for turning or trying to turn.</p>";
 				String full = h + header + body;
@@ -189,6 +192,22 @@ public class GameGui {
 						+ "<br>will display either green or red to match your current role during gameplay."
 						+ "<br>The headlights will flash green while 'it' is blocking, signaling"
 						+ "<br>that they cannot be tagged.</p>";
+				String full = h + header + body;
+				JOptionPane.showMessageDialog(frame, full);
+			}
+		});
+		menuHelp.add(menuHelpIssues);
+		menuHelpIssues.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				String h = "<html><body width='>'";
+				String header = "<h1>Issues</h1>";
+				String body = "<p>Occasionnaly cars may go off the track. The scores and control for "
+						+ "<br>both players will freeze, and you may simply manually put the "
+						+ "<br>car back on track, and give it a push and move command to get it going."
+						+ "<br><br>Occasionally, after a game has ended, one or both cars may not"
+						+ "<br>disconnect. In this case, the car LED will stay blue while the"
+						+ "<br>server complains it cannot find the car. In this case, simply"
+						+ "<br>power the car off and on.</p>";
 				String full = h + header + body;
 				JOptionPane.showMessageDialog(frame, full);
 			}
@@ -428,8 +447,8 @@ public class GameGui {
 		conDialog.setLayout(ml);
 		conDialog.add(topPanel, "cell 0 0, center, grow, push");
 		conDialog.add(conButt, "cell 0 1, center");
-		conDialog.setSize(new Dimension(350, 125));
-		conDialog.setResizable(false);
+		conDialog.setSize(new Dimension(350, 150));
+		conDialog.setResizable(true);
 		conDialog.setVisible(true);
 	}
 	
