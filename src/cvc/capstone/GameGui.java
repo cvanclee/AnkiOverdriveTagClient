@@ -45,6 +45,7 @@ public class GameGui {
 	private JMenu menuHelp;
 	private JMenu menuConnect;
 	private JMenuItem menuConnectConnect;
+	private JMenuItem menuConnectDisconnect;
 	private JMenuItem menuHelpControls;
 	private JMenuItem menuHelpSetup;
 	private JMenuItem menuHelpRules;
@@ -112,6 +113,7 @@ public class GameGui {
 		menuConnect = new JMenu();
 		menuBar = new JMenuBar();
 		menuConnectConnect = new JMenuItem();
+		menuConnectDisconnect = new JMenuItem();
 		menuHelpControls = new JMenuItem();
 		menuHelpSetup = new JMenuItem();
 		menuHelpRules = new JMenuItem();
@@ -120,6 +122,7 @@ public class GameGui {
 		menuHelp.setText("Help");
 		menuConnect.setText("Connect");
 		menuConnectConnect.setText("Connect to server");
+		menuConnectDisconnect.setText("Disconnect from server");
 		menuHelpControls.setText("Controls");
 		menuHelpSetup.setText("Setup");
 		menuHelpRules.setText("Rules");
@@ -130,7 +133,29 @@ public class GameGui {
 		menuConnect.add(menuConnectConnect);
 		menuConnectConnect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				connectDialog();
+				if (commManager == null || commManager.isClosed()) {
+					connectDialog();
+					frame.revalidate();
+					frame.repaint();
+				} else {
+					JOptionPane.showMessageDialog(frame,
+						    "You already are connected to a server.",
+						    "Connect",
+						    JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		});
+		menuConnect.add(menuConnectDisconnect);
+		menuConnectDisconnect.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent evt) {
+				if (commManager != null && !commManager.isClosed()) {
+					disconnectDialog();
+				} else {
+					JOptionPane.showMessageDialog(frame,
+						    "Not connected to a server.",
+						    "Disconnect",
+						    JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		});
 		menuHelp.add(menuHelpControls);
@@ -350,6 +375,8 @@ public class GameGui {
 						+ "<center>" + statusText.getText() + "</center>"
 						+ "<br><h3><center>Score:</center></h3>"
 						+ "<center>Me: " + myScore + "<br>Opponent: " + oppScore + "</center></html>");
+				frame.revalidate();
+				frame.repaint();
 			}
 		});
 	}
@@ -357,8 +384,8 @@ public class GameGui {
 	public synchronized void setScoreStatus(int me, int opponent) {
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				myScore = myScore + me;
-				oppScore = oppScore + opponent;
+				myScore = me;
+				oppScore = opponent;
 				scoreText.setText("<html>"
 						+ "<h3><center>Status:</center></h3>"
 						+ statusText.getText()
@@ -410,6 +437,26 @@ public class GameGui {
 		}
 	}
 	
+	private void disconnectDialog() {
+		int dialogResult = JOptionPane.showConfirmDialog (frame, "Are you sure you want to disconnect?",
+				"Disconnect", JOptionPane.YES_NO_OPTION);
+		if(dialogResult == JOptionPane.YES_OPTION){
+			try {
+				commManager.notifyAndTerminate();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			commManager.interrupt();
+			try {
+				commManager.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		} else {
+			return;
+		}
+	}
+	
 	private void connectDialog() {
 		MigLayout gl = new MigLayout("", "[][]", "[100%][]");
 		MigLayout ml = new MigLayout("", "[100%]", "[][]");
@@ -425,14 +472,16 @@ public class GameGui {
 		conDialog.setTitle("Connect to server");
 		conDialog.setLayout(ml);
 		topPanel.add(hostLabel, "cell 0 0, shrink");
-		topPanel.add(hostField, "cell 1 0, grow, push");
+		topPanel.add(hostField, "cell 1 0, growx, pushx");
 		topPanel.add(portLabel, "cell 0 1, shrink");
-		topPanel.add(portField, "cell 1 1, grow, push");
+		topPanel.add(portField, "cell 1 1, growx, pushx");
 		JButton conButt = new JButton();
 		conButt.setText("Connect");
 		if (MainClass.SERVER_NAME != null) {
 			hostField.setText(MainClass.SERVER_NAME);
 			portField.setText(String.valueOf(MainClass.SERVER_PORT));
+		} else {
+			portField.setText("4999");
 		}
 		conButt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -447,7 +496,7 @@ public class GameGui {
 		conDialog.setLayout(ml);
 		conDialog.add(topPanel, "cell 0 0, center, grow, push");
 		conDialog.add(conButt, "cell 0 1, center");
-		conDialog.setSize(new Dimension(350, 150));
+		conDialog.setSize(new Dimension(350, 200));
 		conDialog.setResizable(true);
 		conDialog.setVisible(true);
 	}

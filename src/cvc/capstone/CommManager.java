@@ -67,6 +67,8 @@ public class CommManager extends Thread {
 					parent.setScoreStatus(0, 0);
 					parent.setGameStatus("DISCONNECTED");
 					parent.setScoreStatus(0, 0);
+					out.flush();
+					os.flush();
 					socket.close();
 					parent.endGame(msg.extra);
 					break;
@@ -75,6 +77,8 @@ public class CommManager extends Thread {
 					parent.setScoreStatus(0, 0);
 					parent.setGameStatus("DISCONNECTED");
 					parent.setScoreStatus(0, 0);
+					out.flush();
+					os.flush();
 					socket.close();
 					parent.endGame(msg.extra);
 					break;
@@ -83,6 +87,18 @@ public class CommManager extends Thread {
 					parent.setScoreStatus(0, 0);
 					parent.setGameStatus("DISCONNECTED");
 					parent.setScoreStatus(0, 0);
+					out.flush();
+					os.flush();
+					socket.close();
+					parent.endGame(msg.extra);
+					break;
+				case -1002: //server exiting early
+					System.out.println("Server booting us out.");
+					parent.setScoreStatus(0, 0);
+					parent.setGameStatus("DISCONNECTED");
+					parent.setScoreStatus(0, 0);
+					out.flush();
+					os.flush();
 					socket.close();
 					parent.endGame(msg.extra);
 					break;
@@ -96,6 +112,11 @@ public class CommManager extends Thread {
 				return;
 			}
 		}
+		try {
+			out.flush();
+			os.flush();
+			socket.close();
+		} catch (Exception e) {}
 	}
 	
 	public void resolveKeyPress(KeyEvent e) throws GameException {
@@ -137,15 +158,19 @@ public class CommManager extends Thread {
 	}
 
 	public void notifyAndTerminate() throws Exception {
+		parent.setGameStatus("DISCONNECTED");
+		parent.setScoreStatus(0, 0);
 		if (!socket.isConnected()) {
 			return;
 		}
 		sendCmd(1002, "");
+		out.flush();
+		os.flush();
 		socket.close();
 	}
 
-	public boolean isConnected() {
-		return socket.isConnected();
+	public boolean isClosed() {
+		return socket.isClosed();
 	}
 
 	private boolean connect() throws GameException {
