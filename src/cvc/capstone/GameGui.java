@@ -143,7 +143,7 @@ public class GameGui {
 					frame.repaint();
 				} else {
 					JOptionPane.showMessageDialog(frame,
-						    "You already are connected to a server.",
+						    "You already are connected to a server. Try disconnecting first.",
 						    "Connect",
 						    JOptionPane.WARNING_MESSAGE);
 				}
