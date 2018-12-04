@@ -39,21 +39,21 @@ public class CommManager extends Thread {
 				switch (msg.cmd) {
 				case 1010:
 					parent.setIsIt(true);
-					parent.setGameStatus("YOU ARE IT! DRIVING " + vehicleName);
+					parent.setGameStatus("YOU ARE BEING HUNTED! DRIVING " + vehicleName);
 					parent.setFrameColor(new Color(0f, 1f, 0f, .5f));
 					break;
 				case 1011:
 					parent.setIsIt(false);
-					parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
+					parent.setGameStatus("YOU ARE THE HUNTER! DRIVING " + vehicleName);
 					parent.setFrameColor(new Color(1f, 0f, 0f, .5f));
 					break;
 				case 1012:
 					parent.setIsIt(!(parent.isIt().get()));
 					if (parent.isIt().get()) {
-						parent.setGameStatus("YOU ARE IT! DRIVING " + vehicleName);
+						parent.setGameStatus("YOU ARE BEING HUNTED! DRIVING " + vehicleName);
 						parent.setFrameColor(new Color(0f, 1f, 0f, .5f));
 					} else {
-						parent.setGameStatus("YOU ARE THE TAGGER! DRIVING " + vehicleName);
+						parent.setGameStatus("YOU ARE THE HUNTER! DRIVING " + vehicleName);
 						parent.setFrameColor(new Color(1f, 0f, 0f, .5f));
 					}
 					break;

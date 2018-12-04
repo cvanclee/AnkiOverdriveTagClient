@@ -51,6 +51,7 @@ public class GameGui {
 	private JMenuItem menuHelpRules;
 	private JMenuItem menuHelpColors;
 	private JMenuItem menuHelpIssues;
+	private JButton readyButt;
 	private JButton leftButt;
 	private JButton rightButt;
 	private JButton speedButt;
@@ -167,8 +168,8 @@ public class GameGui {
 						+ "<br>Right arrow key: change lane right."
 						+ "<br>Space bar: increase speed. You will gradually lose speed without pressing this!"
 						+ "<br>Down arrow key: turn around."
-						+ "<br>Z key: attempt to tag (only as 'tagger'), if not on cooldown."
-						+ "<br>X key: block for 2 seconds (only as 'it'), if not on cooldown."
+						+ "<br>Z key: attempt to tag (only as 'hunter'), if not on cooldown."
+						+ "<br>X key: block for 2 seconds (only as 'hunted'), if not on cooldown."
 						+ "<br>Note: Block cooldown is 10 seconds.</p>";
 				String full = h + header + body;
 				JOptionPane.showMessageDialog(frame, full);
@@ -195,12 +196,12 @@ public class GameGui {
 				String header = "<h1>Rules</h1>";
 				String body = "<p>Never modify the track or interfere with the cars during normal gameplay. "
 						+ "<br>Each player (or client) begins with 0 points, and is randomly assigned"
-						+ "<br>a role ('it' or 'tagger') and an Anki car. Once the cars scan the track, "
-						+ "<br>each player may control their respective car. The goal of 'it' is to avoid "
-						+ "<br>being tagged by the 'tagger'."
-						+ "<br>Every consecutive 30 seconds a player is 'it' without being tagged, they "
-						+ "<br>gain 10 points. Every time the 'tagger' tags 'it', the players swap roles, "
-						+ "<br>and the new 'it' is given 3 seconds to get away and is given 5 points. The game "
+						+ "<br>a role ('hunted' or 'hunter') and an Anki car. Once the cars scan the track, "
+						+ "<br>each player may control their respective car. The goal of the 'hunted' is to avoid "
+						+ "<br>being tagged by the 'hunter'."
+						+ "<br>Every consecutive 30 seconds a player is 'hunted' without being tagged, they "
+						+ "<br>gain 7 points. Every time the 'hunter' tags the 'hunted', the players swap roles, "
+						+ "<br>and the new 'hunted' is given 3 seconds to get away and is given 5 points. The game "
 						+ "<br> ends when a player reaches 50 points, or a player disconnects. "
 						+ "<br>Note: You will lose 1 point for turning or trying to turn.</p>";
 				String full = h + header + body;
@@ -212,10 +213,10 @@ public class GameGui {
 			public void actionPerformed(ActionEvent evt) {
 				String h = "<html><body width='>'";
 				String header = "<h1>Colors</h1>";
-				String body = "<p>Red represents who is the 'tagger', and green represents who is 'it'."
+				String body = "<p>Red represents who is the 'hunter', and green represents who is 'hunted'."
 						+ "<br>The headlights of your assigned car and the background of this interface"
 						+ "<br>will display either green or red to match your current role during gameplay."
-						+ "<br>The headlights will flash green while 'it' is blocking, signaling"
+						+ "<br>The headlights will flash green while 'hunted' is blocking, signaling"
 						+ "<br>that they cannot be tagged.</p>";
 				String full = h + header + body;
 				JOptionPane.showMessageDialog(frame, full);
@@ -240,18 +241,21 @@ public class GameGui {
 		frame.setJMenuBar(menuBar);
 		
 		//Buttons for car control setup
+		readyButt = new JButton();
 		leftButt = new JButton();
 		rightButt = new JButton();
 		speedButt = new JButton();
 		turnButt = new JButton();
 		tagButt = new JButton();
 		blockButt = new JButton();
+		readyButt.setFocusable(false);
 		leftButt.setFocusable(false); //Prevents spacebar binding to the most recently pressed button
 		rightButt.setFocusable(false);
 		speedButt.setFocusable(false);
 		turnButt.setFocusable(false);
 		tagButt.setFocusable(false);
 		blockButt.setFocusable(false);
+		readyButt.setBackground(Color.DARK_GRAY);
 		leftButt.setBackground(Color.DARK_GRAY);
 		rightButt.setBackground(Color.DARK_GRAY);
 		speedButt.setBackground(Color.DARK_GRAY);
@@ -259,6 +263,7 @@ public class GameGui {
 		tagButt.setBackground(Color.DARK_GRAY);
 		blockButt.setBackground(Color.DARK_GRAY);
 		UIManager.put("Button.focus", new ColorUIResource(new Color(0, 0, 0, 0))); //Remove icon focus outline
+		readyButt.setToolTipText("Notify server you are ready to play");
 		leftButt.setToolTipText("Turn left");
 		rightButt.setToolTipText("Turn right");
 		speedButt.setToolTipText("Speed up");
@@ -268,6 +273,7 @@ public class GameGui {
 		try {
 			String resPath = new File(MainClass.class.getProtectionDomain().getCodeSource().getLocation().toURI())
 					.getParent() + "/res/";
+			readyButt.setIcon(resizeImg(resPath + "start.png", 30, 30));
 			leftButt.setIcon(resizeImg(resPath + "back.png", 30, 30));
 			rightButt.setIcon(resizeImg(resPath + "forward.png", 30, 30));
 			speedButt.setIcon(resizeImg(resPath + "racing.png", 30, 30));
@@ -278,6 +284,7 @@ public class GameGui {
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
+		readyButt.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		leftButt.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		rightButt.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		speedButt.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
@@ -286,6 +293,7 @@ public class GameGui {
 		blockButt.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		MigLayout mgl = new MigLayout("", "[20%][60%][20%]", "[20%][60%][20%]"); //column, row
 		mainPanel.setLayout(mgl);
+		mainPanel.add(readyButt, "cell 0 0");
 		mainPanel.add(turnButt, "cell 1 0");
 		mainPanel.add(leftButt, "cell 0 1");
 		mainPanel.add(rightButt, "cell 2 1");
@@ -293,6 +301,15 @@ public class GameGui {
 		mainPanel.add(speedButt, "cell 1 2");
 		mainPanel.add(blockButt, "cell 2 2");
 		mainPanel.add(scoreText, "align center, cell 1 1"); //center
+		readyButt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					commManager.resolveKeyPress(new FakeKeyEvents(readyButt, -1, (long) -1.0, -1, KeyEvent.VK_R));
+				} catch (GameException ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
 		leftButt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
