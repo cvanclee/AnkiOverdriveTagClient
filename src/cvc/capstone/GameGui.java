@@ -11,6 +11,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.plaf.ColorUIResource;
 
 import net.miginfocom.swing.MigLayout;
@@ -293,7 +296,7 @@ public class GameGui {
 		blockButt.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		MigLayout mgl = new MigLayout("", "[20%][60%][20%]", "[20%][60%][20%]"); //column, row
 		mainPanel.setLayout(mgl);
-		mainPanel.add(readyButt, "cell 0 0");
+		mainPanel.add(readyButt, "cell 2 0");
 		mainPanel.add(turnButt, "cell 1 0");
 		mainPanel.add(leftButt, "cell 0 1");
 		mainPanel.add(rightButt, "cell 2 1");
@@ -378,7 +381,28 @@ public class GameGui {
 	public synchronized void endGame(String reason) {
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				JOptionPane.showMessageDialog(frame, reason);
+				JOptionPane optionPane = new JOptionPane(reason, JOptionPane.INFORMATION_MESSAGE);
+				JDialog dialog = new JDialog(frame, "Game over", true);
+				dialog.setContentPane(optionPane);
+				dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				optionPane.addPropertyChangeListener(new PropertyChangeListener() {
+					public void propertyChange(PropertyChangeEvent e) {
+						String prop = e.getPropertyName();
+						if (dialog.isVisible() && (e.getSource() == optionPane)
+								&& (prop.equals(JOptionPane.VALUE_PROPERTY))) {
+							dialog.setVisible(false);
+							dialog.dispose();
+						}
+					}
+				});
+				dialog.addWindowListener( new WindowAdapter() {
+				    public void windowOpened( WindowEvent e ){
+				        dialog.requestFocus();
+				    }
+				}); 
+				dialog.setLocationRelativeTo(frame);
+				dialog.pack();
+				dialog.setVisible(true);
 			}
 		});
 	}

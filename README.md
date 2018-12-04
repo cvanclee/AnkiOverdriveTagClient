@@ -1,4 +1,4 @@
-<div>Icon 'start.png' made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"	   title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+<div>Icon 'start.png' made by <a href="https://www.flaticon.com/authors/freepik" title="freepik">Freepik</a> from <a href="https://www.flaticon.com/" 			    title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"	   title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 
 <div>Icon 'racing.png' made by <a href="https://www.flaticon.com/authors/freepik" title="Racing">freepik</a> from <a href="https://www.flaticon.com/"     title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"     title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 
