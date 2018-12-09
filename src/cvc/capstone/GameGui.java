@@ -172,7 +172,7 @@ public class GameGui {
 						+ "<br>Space bar: increase speed. You will gradually lose speed without pressing this!"
 						+ "<br>Down arrow key: turn around."
 						+ "<br>Z key: attempt to tag (only as 'hunter'), if not on cooldown."
-						+ "<br>X key: block for 2 seconds (only as 'hunted'), if not on cooldown."
+						+ "<br>X key: block for 3 seconds (only as 'hunted'), if not on cooldown."
 						+ "<br>Note: Block cooldown is 10 seconds.</p>";
 				String full = h + header + body;
 				JOptionPane.showMessageDialog(frame, full);
@@ -205,7 +205,7 @@ public class GameGui {
 						+ "<br>Every consecutive 30 seconds a player is 'hunted' without being tagged, they "
 						+ "<br>gain 7 points. Every time the 'hunter' tags the 'hunted', the players swap roles, "
 						+ "<br>and the new 'hunted' is given 3 seconds to get away and is given 5 points. The game "
-						+ "<br> ends when a player reaches 50 points, or a player disconnects. "
+						+ "<br> ends when a player reaches the max points (server decides), or a player disconnects. "
 						+ "<br>Note: You will lose 1 point for turning or trying to turn.</p>";
 				String full = h + header + body;
 				JOptionPane.showMessageDialog(frame, full);
